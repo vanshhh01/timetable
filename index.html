@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timetable</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
+body{min-height:100vh;background:radial-gradient(circle at top,#0f172a,#020617);color:#fff;display:flex;justify-content:center;align-items:center}
+.app{width:420px;max-width:95%;background:rgba(255,255,255,0.05);backdrop-filter:blur(25px);border-radius:24px;padding:24px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 25px 60px rgba(0,0,0,0.6)}
+header{display:flex;justify-content:space-between;margin-bottom:18px}
+h1{font-size:26px}
+.clock{font-size:14px;opacity:.8}
+.day-switch{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.day-btn{padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.08);cursor:pointer;font-size:12px}
+.day-btn.active{background:#2563eb}
+.next{background:linear-gradient(135deg,#facc15,#eab308);color:#000;border-radius:18px;padding:18px;margin-bottom:20px}
+.list{max-height:320px;overflow:auto;scrollbar-width:none}
+.list::-webkit-scrollbar{display:none}
+.item{display:flex;justify-content:space-between;padding:12px;border-radius:14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.item.past{background:#14532d}
+.item.nextClass{background:#facc15;color:#000}
+.item span{font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+
+<div class="app">
+<header>
+<h1>📅 Timetable</h1>
+<div class="clock" id="clock"></div>
+</header>
+
+<div class="day-switch" id="days"></div>
+
+<div class="next">
+<small>Next Class</small>
+<h2 id="nextSub">Loading...</h2>
+<div id="nextTeacher"></div>
+<div id="nextTime"></div>
+</div>
+
+<div class="list" id="schedule"></div>
+</div>
+
+<script>
+// Period grid
+const periods=[
+ "08:50-09:40","09:40-10:30","10:40-11:30","11:30-12:20",
+ "01:10-02:00","02:00-02:50","02:50-03:40","03:40-04:30"
+];
+
+// Your timetable (labs = consecutive entries)
+const timetable={
+ Monday:[
+  {name:"Environment & Sustainability",teacher:"Divyanshi Sharma"},
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Applied Physics",teacher:"Isha Mehra"},
+  {name:"Basic Electrical Engg",teacher:"Vikash Tiwari"},
+  {name:"Physics Lab",teacher:"Isha Mehra",lab:"phy"},
+  {name:"Physics Lab",teacher:"Isha Mehra",lab:"phy"},
+  {name:"Data Structure C++",teacher:"Ankur Sharma"},
+  {name:"Essentials of AI",teacher:"Rahul Singh"}
+ ],
+ Tuesday:[
+  {name:"DS Lab C++",teacher:"Ankur Sharma",lab:"ds"},
+  {name:"DS Lab C++",teacher:"Ankur Sharma",lab:"ds"},
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Basic Electrical Engg",teacher:"Vikash Tiwari"},
+  {name:"Essentials of AI",teacher:"Rahul Singh"},
+  {name:"Applied Physics",teacher:"Isha Mehra"},
+  {name:"Environment & Sustainability",teacher:"Divyanshi Sharma"},
+  null
+ ],
+ Wednesday:[
+  {name:"Basic Electrical Engg",teacher:"Vikash Tiwari"},
+  {name:"Applied Physics",teacher:"Isha Mehra"},
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Data Structure C++",teacher:"Ankur Sharma"},
+  {name:"Web Designing Workshop",teacher:"Jitendra Kumar",lab:"web"},
+  {name:"Web Designing Workshop",teacher:"Jitendra Kumar",lab:"web"},
+  {name:"Mentor Mentee",teacher:"Mentors"},
+  null
+ ],
+ Thursday:[
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Data Structure C++",teacher:"Ankur Sharma"},
+  {name:"CAD Lab",teacher:"Mohit Bansal",lab:"cad"},
+  {name:"CAD Lab",teacher:"Mohit Bansal",lab:"cad"},
+  {name:"Basic Electrical Engg",teacher:"Vikash Tiwari"},
+  {name:"Web Designing Workshop",teacher:"Jitendra Kumar"},
+  {name:"Essentials of AI",teacher:"Rahul Singh"},
+  null
+ ],
+ Friday:[
+  {name:"Applied Physics",teacher:"Isha Mehra"},
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Electrical Lab",teacher:"Vikash Tiwari",lab:"ele"},
+  {name:"Electrical Lab",teacher:"Vikash Tiwari",lab:"ele"},
+  {name:"Applied Calculus",teacher:"Ranjeet Kaur"},
+  {name:"Data Structure C++",teacher:"Ankur Sharma"},
+  {name:"Basic Electrical Engg",teacher:"Vikash Tiwari"},
+  null
+ ]
+};
+
+const dayOrder=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+let todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
+let selectedDay=dayOrder.includes(todayReal)?todayReal:"Monday";
+
+const daysDiv=document.getElementById("days");
+dayOrder.forEach(d=>{
+ const btn=document.createElement("div");
+ btn.className="day-btn"+(d===selectedDay?" active":"");
+ btn.innerText=d.slice(0,3);
+ btn.onclick=()=>{selectedDay=d;document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();};
+ daysDiv.appendChild(btn);
+});
+
+function toMin(t){let[h,m]=t.split(":").map(Number);return h*60+m;}
+
+function mergeLabs(daySlots){
+ let merged=[];
+ for(let i=0;i<daySlots.length;i++){
+   let cur=daySlots[i];
+   if(cur && cur.lab && daySlots[i+1] && daySlots[i+1].lab===cur.lab){
+     merged.push({name:cur.name,teacher:cur.teacher,time:periods[i].split("-")[0]+"-"+periods[i+1].split("-")[1]});
+     i++;
+   }else if(cur){
+     merged.push({...cur,time:periods[i]});
+   }
+ }
+ return merged;
+}
+
+function render(){
+ const list=document.getElementById("schedule");
+ list.innerHTML="";
+ let now=new Date();
+ let current=now.getHours()*60+now.getMinutes();
+
+ let todayIndex=dayOrder.indexOf(todayReal);
+ let selectedIndex=dayOrder.indexOf(selectedDay);
+ let isWeekend=(todayReal==="Saturday"||todayReal==="Sunday");
+
+ let merged=mergeLabs(timetable[selectedDay]);
+ let next=null;
+
+ merged.forEach(cls=>{
+   let [start,end]=cls.time.split("-");
+   let s=toMin(start), e=toMin(end);
+   let status="";
+
+   if(!isWeekend){
+     if(selectedIndex < todayIndex){
+       status="past";
+     }
+     else if(selectedIndex === todayIndex){
+       if(current>=s && current<=e) status="past";
+       else if(current>e) status="past";
+       else if(!next){status="nextClass";next=cls;}
+     }
+   }
+
+   list.innerHTML+=`<div class="item ${status}">
+     <div>${cls.name}<br><span>${cls.teacher}</span></div>
+     <div>${cls.time}</div>
+   </div>`;
+ });
+
+ document.getElementById("nextSub").innerText=
+   next?next.name:(isWeekend?"Weekend 🎉":"No more classes");
+ document.getElementById("nextTeacher").innerText=next?next.teacher:"";
+ document.getElementById("nextTime").innerText=next?next.time:"";
+}
+
+setInterval(()=>{
+ document.getElementById("clock").innerText=new Date().toLocaleTimeString();
+ todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
+ render();
+},1000);
+</script>
+</body>
+</html>
