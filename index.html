@@ -4,24 +4,475 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui}
-body{min-height:100vh;background:radial-gradient(circle at top,#0f172a,#020617);color:#fff;display:flex;justify-content:center;align-items:center}
-.app{width:420px;max-width:95%;background:rgba(255,255,255,0.05);backdrop-filter:blur(25px);border-radius:24px;padding:24px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 25px 60px rgba(0,0,0,0.6)}
-header{display:flex;justify-content:space-between;margin-bottom:18px}
-h1{font-size:26px}
-.clock{font-size:14px;opacity:.8}
-.day-switch{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
-.day-btn{padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.08);cursor:pointer;font-size:12px}
-.day-btn.active{background:#2563eb}
-.next{background:linear-gradient(135deg,#facc15,#eab308);color:#000;border-radius:18px;padding:18px;margin-bottom:20px}
-.list{max-height:320px;overflow:auto;scrollbar-width:none}
-.list::-webkit-scrollbar{display:none}
-.item{display:flex;justify-content:space-between;padding:12px;border-radius:14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
-.item.past{background:#14532d}
-.item.nextClass{background:#facc15;color:#000}
-.item span{font-size:12px;opacity:.7}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+}
+
+:root{
+  --bg-primary:#0f172a;
+  --bg-secondary:#1e293b;
+  --bg-card:rgba(30,41,59,0.7);
+  --accent-blue:#3b82f6;
+  --accent-blue-hover:#2563eb;
+  --accent-yellow:#fde047;
+  --accent-yellow-text:#0f172a;
+  --accent-green:#22c55e;
+  --accent-red:#ef4444;
+  --accent-purple:#8b5cf6;
+  --text-primary:#f8fafc;
+  --text-secondary:#94a3b8;
+  --text-muted:#64748b;
+  --border-color:rgba(148,163,184,0.1);
+  --glow-blue:0 0 20px rgba(59,130,246,0.3);
+  --glow-yellow:0 0 20px rgba(253,224,71,0.4);
+}
+
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
+  color:var(--text-primary);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:20px;
+}
+
+.app{
+  width:460px;
+  max-width:100%;
+  background:linear-gradient(145deg,rgba(30,41,59,0.6),rgba(15,23,42,0.8));
+  backdrop-filter:blur(20px);
+  border-radius:24px;
+  padding:28px;
+  border:1px solid var(--border-color);
+  box-shadow:0 25px 50px -12px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:24px;
+}
+
+h1{
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:-0.5px;
+  background:linear-gradient(135deg,#f8fafc,#94a3b8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.clock-container{
+  text-align:right;
+}
+
+.clock{
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-primary);
+  letter-spacing:0.5px;
+}
+
+.date-display{
+  font-size:12px;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+
+.day-switch{
+  display:flex;
+  gap:8px;
+  margin-bottom:24px;
+  flex-wrap:wrap;
+}
+
+.day-btn{
+  padding:10px 16px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border-color);
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text-secondary);
+  transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+  overflow:hidden;
+}
+
+.day-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  opacity:0;
+  transition:opacity 0.25s;
+}
+
+.day-btn:hover{
+  background:rgba(255,255,255,0.1);
+  color:var(--text-primary);
+  transform:translateY(-2px);
+}
+
+.day-btn.active{
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  color:#fff;
+  border-color:transparent;
+  box-shadow:var(--glow-blue);
+}
+
+.day-btn.active::after{
+  content:'';
+  position:absolute;
+  right:6px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:11px;
+  font-weight:700;
+}
+
+.next{
+  background:linear-gradient(135deg,rgba(253,224,71,0.15),rgba(253,224,71,0.05));
+  border:1px solid rgba(253,224,71,0.3);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:24px;
+  position:relative;
+  overflow:hidden;
+}
+
+.next::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:3px;
+  background:linear-gradient(90deg,var(--accent-yellow),var(--accent-purple),var(--accent-blue));
+}
+
+.next-label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  color:var(--accent-yellow);
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.next h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:8px;
+  line-height:1.3;
+}
+
+.next-info{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.next-info span{
+  font-size:13px;
+  color:var(--text-secondary);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.next-info .teacher{
+  color:var(--accent-blue);
+  font-weight:500;
+}
+
+.list{
+  max-height:400px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.1) transparent;
+  padding-right:4px;
+}
+
+.list::-webkit-scrollbar{
+  width:6px;
+}
+
+.list::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.list::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.1);
+  border-radius:3px;
+}
+
+.item{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border-color);
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+  overflow:hidden;
+}
+
+.item::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:var(--accent-blue);
+  opacity:0;
+  transition:opacity 0.3s;
+}
+
+.item:hover{
+  transform:translateX(4px);
+  background:rgba(255,255,255,0.06);
+  border-color:rgba(255,255,255,0.15);
+}
+
+.item:hover::before{
+  opacity:1;
+}
+
+.item.past{
+  background:rgba(34,197,94,0.08);
+  border-color:rgba(34,197,94,0.2);
+}
+
+.item.past::before{
+  background:var(--accent-green);
+  opacity:0.6;
+}
+
+.item.past .period-num,
+.item.past .class-name,
+.item.past .teacher-name{
+  opacity:0.5;
+}
+
+.item.current{
+  background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(139,92,246,0.1));
+  border-color:rgba(59,130,246,0.4);
+  box-shadow:var(--glow-blue);
+}
+
+.item.current::before{
+  background:linear-gradient(180deg,var(--accent-blue),var(--accent-purple));
+  opacity:1;
+}
+
+.item.nextClass{
+  background:linear-gradient(135deg,rgba(253,224,71,0.25),rgba(253,224,71,0.1));
+  border-color:rgba(253,224,71,0.6);
+  box-shadow:var(--glow-yellow);
+}
+
+.item.nextClass::before{
+  background:var(--accent-yellow);
+  opacity:1;
+}
+
+@keyframes pulse{
+  0%,100%{box-shadow:var(--glow-blue);}
+  50%{box-shadow:0 0 30px rgba(59,130,246,0.5);}
+}
+
+.period-num{
+  min-width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.08);
+  border-radius:10px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-secondary);
+}
+
+.item.current .period-num{
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  color:#fff;
+}
+
+.item.nextClass .period-num{
+  background:rgba(253,224,71,0.2);
+  color:var(--accent-yellow-text);
+}
+
+.item.past .period-num{
+  background:rgba(34,197,94,0.15);
+  color:var(--accent-green);
+}
+
+.class-info{
+  flex:1;
+  min-width:0;
+}
+
+.class-name{
+  font-size:15px;
+  font-weight:600;
+  color:var(--text-primary);
+  margin-bottom:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.teacher-name{
+  font-size:12px;
+  color:var(--text-muted);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.time-slot{
+  text-align:right;
+  min-width:90px;
+}
+
+.time-range{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text-secondary);
+}
+
+.item.current .time-range{
+  color:var(--accent-blue);
+}
+
+.item.nextClass .time-range{
+  color:var(--accent-yellow-text);
+}
+
+.time-label{
+  font-size:10px;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  margin-top:2px;
+}
+
+.item.current .time-label{
+  color:var(--accent-blue);
+}
+
+.empty-state{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--text-muted);
+}
+
+.empty-state-icon{
+  font-size:48px;
+  margin-bottom:12px;
+}
+
+.empty-state-text{
+  font-size:15px;
+  font-weight:500;
+}
+
+.weekend-banner{
+  background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.1));
+  border:1px solid rgba(139,92,246,0.3);
+  border-radius:16px;
+  padding:24px;
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.weekend-banner h2{
+  font-size:24px;
+  margin-bottom:8px;
+}
+
+.weekend-banner p{
+  color:var(--text-secondary);
+}
+
+/* Mobile layout */
+@media (max-width:500px){
+  body{
+    padding:12px;
+    align-items:flex-start;
+  }
+  .app{
+    padding:20px;
+    border-radius:20px;
+  }
+  h1{
+    font-size:24px;
+  }
+  .day-btn{
+    padding:8px 12px;
+    font-size:12px;
+  }
+  .item{
+    padding:14px;
+    gap:12px;
+  }
+  .period-num{
+    min-width:32px;
+    height:32px;
+    font-size:12px;
+  }
+  .class-name{
+    font-size:14px;
+  }
+  .time-range{
+    font-size:13px;
+  }
+}
+
+/* Animation for items appearing */
+@keyframes slideIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.item{
+  animation:slideIn 0.3s ease forwards;
+}
+
+.item:nth-child(1){animation-delay:0.05s;}
+.item:nth-child(2){animation-delay:0.1s;}
+.item:nth-child(3){animation-delay:0.15s;}
+.item:nth-child(4){animation-delay:0.2s;}
+.item:nth-child(5){animation-delay:0.25s;}
+.item:nth-child(6){animation-delay:0.3s;}
+.item:nth-child(7){animation-delay:0.35s;}
+.item:nth-child(8){animation-delay:0.4s;}
 </style>
 </head>
 <body>
@@ -29,16 +480,23 @@ h1{font-size:26px}
 <div class="app">
 <header>
 <h1>📅 Timetable</h1>
+<div class="clock-container">
 <div class="clock" id="clock"></div>
+<div class="date-display" id="date"></div>
+</div>
 </header>
 
 <div class="day-switch" id="days"></div>
 
+<div id="nextSection">
 <div class="next">
-<small>Next Class</small>
+<small class="next-label">Next Class</small>
 <h2 id="nextSub">Loading...</h2>
-<div id="nextTeacher"></div>
-<div id="nextTime"></div>
+<div class="next-info">
+<span id="nextTeacher"></span>
+<span id="nextTime"></span>
+</div>
+</div>
 </div>
 
 <div class="list" id="schedule"></div>
@@ -106,6 +564,8 @@ const timetable={
 };
 
 const dayOrder=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const weekendDays=["Saturday","Sunday"];
+
 let todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
 let selectedDay=dayOrder.includes(todayReal)?todayReal:"Monday";
 
@@ -114,7 +574,12 @@ dayOrder.forEach(d=>{
  const btn=document.createElement("div");
  btn.className="day-btn"+(d===selectedDay?" active":"");
  btn.innerText=d.slice(0,3);
- btn.onclick=()=>{selectedDay=d;document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();};
+ btn.onclick=()=>{
+   selectedDay=d;
+   document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+   btn.classList.add('active');
+   render();
+ };
  daysDiv.appendChild(btn);
 });
 
@@ -122,63 +587,186 @@ function toMin(t){let[h,m]=t.split(":").map(Number);return h*60+m;}
 
 function mergeLabs(slots){
  let merged=[];
+ let periodIndex=0;
  for(let i=0;i<slots.length;i++){
    let cur=slots[i];
    if(cur && cur.lab && slots[i+1] && slots[i+1].lab===cur.lab){
-     merged.push({name:cur.name,teacher:cur.teacher,time:periods[i].split("-")[0]+"-"+periods[i+1].split("-")[1]});
+     merged.push({
+       name:cur.name,
+       teacher:cur.teacher,
+       time:periods[i].split("-")[0]+"-"+periods[i+1].split("-")[1],
+       periodNum:periodIndex+1,
+       isLab:true
+     });
      i++;
+     periodIndex+=2;
    } else if(cur){
-     merged.push({...cur,time:periods[i]});
+     merged.push({...cur,time:periods[periodIndex],periodNum:periodIndex+1});
+     periodIndex++;
    }
  }
  return merged;
 }
 
+function formatDate(date){
+ return date.toLocaleDateString('en-US',{
+   weekday:'long',
+   month:'short',
+   day:'numeric'
+ });
+}
+
 function render(){
  const list=document.getElementById("schedule");
+ const nextSection=document.getElementById("nextSection");
  list.innerHTML="";
+ 
  let now=new Date();
  let current=now.getHours()*60+now.getMinutes();
-
  let todayIndex=dayOrder.indexOf(todayReal);
  let selectedIndex=dayOrder.indexOf(selectedDay);
- let isWeekend=(todayReal==="Saturday"||todayReal==="Sunday");
+ let isWeekend=weekendDays.includes(todayReal);
 
+ // Check if selected day is in the past
+ let isSelectedDayPast=false;
+ if(selectedIndex >= 0 && selectedIndex < todayIndex){
+   isSelectedDayPast=true;
+ }
+
+ // Handle weekend display
+ if(isWeekend){
+   nextSection.innerHTML=`
+     <div class="weekend-banner">
+       <h2>🎉 Weekend Vibes!</h2>
+       <p>Enjoy your weekend. No classes scheduled.</p>
+     </div>
+   `;
+   
+   // Show next weekday schedule
+   let nextWeekday="Monday";
+   let merged=mergeLabs(timetable[nextWeekday]||[]);
+   
+   merged.forEach((cls,idx)=>{
+     list.innerHTML+=createItemHTML(cls,idx,"",false);
+   });
+   return;
+ }
+
+ // Regular day rendering
  let merged=mergeLabs(timetable[selectedDay]||[]);
  let next=null;
+ let currentClass=null;
 
- merged.forEach(cls=>{
+ merged.forEach((cls,idx)=>{
    let [start,end]=cls.time.split("-");
    let s=toMin(start), e=toMin(end);
    let status="";
 
-   if(!isWeekend){
-     if(selectedIndex < todayIndex){
+   if(isSelectedDayPast){
+     status="past";
+   } else if(selectedIndex === todayIndex){
+     if(current>=s && current<=e){
+       status="current";
+       currentClass=cls;
+     } else if(current>e){
        status="past";
-     } else if(selectedIndex === todayIndex){
-       if(current>=s && current<=e) status="past";
-       else if(current>e) status="past";
-       else if(!next){status="nextClass";next=cls;}
+     } else if(!next){
+       status="nextClass";
+       next=cls;
+     }
+   } else if(selectedIndex > todayIndex && !isSelectedDayPast){
+     if(!next) {
+       status="nextClass";
+       next=cls;
      }
    }
 
-   list.innerHTML+=`<div class="item ${status}">
-     <div>${cls.name}<br><span>${cls.teacher}</span></div>
-     <div>${cls.time}</div>
-   </div>`;
+   list.innerHTML+=createItemHTML(cls,idx,status,selectedIndex === todayIndex);
  });
 
- document.getElementById("nextSub").innerText=
-   next?next.name:(isWeekend?"Weekend 🎉":"No more classes");
- document.getElementById("nextTeacher").innerText=next?next.teacher:"";
- document.getElementById("nextTime").innerText=next?next.time:"";
+ // Update next class section
+ if(selectedIndex === todayIndex && !isWeekend){
+   let label="";
+   if(currentClass){
+     label="Now";
+     document.getElementById("nextSub").innerText=currentClass.name;
+     document.getElementById("nextTeacher").innerHTML=`<span class="teacher">${currentClass.teacher}</span>`;
+     document.getElementById("nextTime").innerText=currentClass.time;
+   } else if(next){
+     label="Next";
+     document.getElementById("nextSub").innerText=next.name;
+     document.getElementById("nextTeacher").innerHTML=`<span class="teacher">${next.teacher}</span>`;
+     document.getElementById("nextTime").innerText=next.time;
+   } else {
+     label="Done";
+     document.getElementById("nextSub").innerText="All Classes Over";
+     document.getElementById("nextTeacher").innerText="";
+     document.getElementById("nextTime").innerText="";
+   }
+   document.querySelector('.next-label').innerText=label === "Now" ? "Now Happening" : (label === "Done" ? "That's All" : "Next Class");
+   nextSection.innerHTML=`
+     <div class="next">
+       <small class="next-label">${label === "Now" ? "Now Happening" : (label === "Done" ? "That's All" : "Next Class")}</small>
+       <h2 id="nextSub">${currentClass ? currentClass.name : (next ? next.name : "All Classes Over")}</h2>
+       <div class="next-info">
+         <span id="nextTeacher">${currentClass ? currentClass.teacher : (next ? next.teacher : "")}</span>
+         <span id="nextTime">${currentClass ? currentClass.time : (next ? next.time : "")}</span>
+       </div>
+     </div>
+   `;
+ } else {
+   let dayLabel=isSelectedDayPast ? "Was" : "Up Next";
+   document.querySelector('.next-label').innerText=dayLabel;
+   if(next){
+     document.getElementById("nextSub").innerText=next.name;
+     document.getElementById("nextTeacher").innerHTML=`<span class="teacher">${next.teacher}</span>`;
+     document.getElementById("nextTime").innerText=next.time;
+   } else {
+     document.getElementById("nextSub").innerText="No Classes";
+     document.getElementById("nextTeacher").innerText="";
+     document.getElementById("nextTime").innerText="";
+   }
+ }
+}
+
+function createItemHTML(cls,idx,status,isToday){
+ let statusLabel="";
+ if(status === "current") statusLabel="NOW";
+ else if(status === "nextClass") statusLabel="NEXT";
+ else if(status === "past") statusLabel="DONE";
+ 
+ return `
+   <div class="item ${status}">
+     <div class="period-num">P${cls.periodNum}</div>
+     <div class="class-info">
+       <div class="class-name">${cls.name}${cls.isLab ? ' 🔬' : ''}</div>
+       <div class="teacher-name">👤 ${cls.teacher}</div>
+     </div>
+     <div class="time-slot">
+       <div class="time-range">${cls.time}</div>
+       ${statusLabel ? `<div class="time-label">${statusLabel}</div>` : ''}
+     </div>
+   </div>
+ `;
+}
+
+function updateClock(){
+ const now=new Date();
+ document.getElementById("clock").innerText=now.toLocaleTimeString('en-US',{
+   hour:'2-digit',
+   minute:'2-digit',
+   hour12:true
+ });
+ document.getElementById("date").innerText=formatDate(now);
 }
 
 setInterval(()=>{
- document.getElementById("clock").innerText=new Date().toLocaleTimeString();
- todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
- render();
-},1000);
+  updateClock();
+  todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
+},60000);
+
+updateClock();
+render();
 </script>
 </body>
 </html>
