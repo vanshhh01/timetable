@@ -51,7 +51,7 @@ const periods=[
  "01:10-02:00","02:00-02:50","02:50-03:40","03:40-04:30"
 ];
 
-// Your timetable (labs = consecutive entries)
+// Period timetable (labs = consecutive entries)
 const timetable={
  Monday:[
   {name:"Environment & Sustainability",teacher:"Divyanshi Sharma"},
@@ -120,14 +120,14 @@ dayOrder.forEach(d=>{
 
 function toMin(t){let[h,m]=t.split(":").map(Number);return h*60+m;}
 
-function mergeLabs(daySlots){
+function mergeLabs(slots){
  let merged=[];
- for(let i=0;i<daySlots.length;i++){
-   let cur=daySlots[i];
-   if(cur && cur.lab && daySlots[i+1] && daySlots[i+1].lab===cur.lab){
+ for(let i=0;i<slots.length;i++){
+   let cur=slots[i];
+   if(cur && cur.lab && slots[i+1] && slots[i+1].lab===cur.lab){
      merged.push({name:cur.name,teacher:cur.teacher,time:periods[i].split("-")[0]+"-"+periods[i+1].split("-")[1]});
      i++;
-   }else if(cur){
+   } else if(cur){
      merged.push({...cur,time:periods[i]});
    }
  }
@@ -144,7 +144,7 @@ function render(){
  let selectedIndex=dayOrder.indexOf(selectedDay);
  let isWeekend=(todayReal==="Saturday"||todayReal==="Sunday");
 
- let merged=mergeLabs(timetable[selectedDay]);
+ let merged=mergeLabs(timetable[selectedDay]||[]);
  let next=null;
 
  merged.forEach(cls=>{
@@ -155,8 +155,7 @@ function render(){
    if(!isWeekend){
      if(selectedIndex < todayIndex){
        status="past";
-     }
-     else if(selectedIndex === todayIndex){
+     } else if(selectedIndex === todayIndex){
        if(current>=s && current<=e) status="past";
        else if(current>e) status="past";
        else if(!next){status="nextClass";next=cls;}
