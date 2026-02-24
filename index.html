@@ -5,248 +5,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Timetable</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
- *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Inter',system-ui,-apple-system,sans-serif;
-}
-
-:root{
-  --bg1:#0f172a;
-  --bg2:#020617;
-  --card:rgba(30,41,59,0.65);
-  --border:rgba(255,255,255,0.08);
-  --text:#f8fafc;
-  --muted:#94a3b8;
-  --blue:#3b82f6;
-  --yellow:#fde047;
-  --green:#22c55e;
-}
-
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
 body{
   min-height:100vh;
-  background:
-    radial-gradient(circle at 20% 0%, #1e293b, transparent 40%),
-    radial-gradient(circle at 80% 100%, #020617, transparent 40%),
-    linear-gradient(135deg,var(--bg1),var(--bg2));
-  color:var(--text);
+  background:linear-gradient(135deg,#0f172a,#020617);
+  color:#fff;
   display:flex;
   justify-content:center;
-  align-items:flex-start;
   padding:20px;
 }
-
 .app{
   width:460px;
   max-width:100%;
-  background:linear-gradient(145deg,rgba(30,41,59,0.6),rgba(2,6,23,0.9));
-  backdrop-filter:blur(24px);
-  border-radius:26px;
-  padding:26px;
-  border:1px solid var(--border);
-  box-shadow:
-    0 20px 60px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-  transition:0.35s ease;
+  background:rgba(17,24,39,0.9);
+  backdrop-filter:blur(20px);
+  border-radius:24px;
+  padding:24px;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 25px 50px rgba(0,0,0,0.6);
 }
+header{display:flex;justify-content:space-between;margin-bottom:20px}
+h1{font-size:26px;font-weight:700}
+.clock{font-size:14px;color:#94a3b8}
 
-.app:hover{
-  transform:translateY(-3px);
-  box-shadow:
-    0 30px 80px rgba(0,0,0,0.9),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  margin-bottom:22px;
-}
-
-h1{
-  font-size:28px;
-  font-weight:700;
-  letter-spacing:-0.5px;
-  background:linear-gradient(135deg,#fff,#94a3b8);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-
-.clock{
-  font-size:15px;
-  font-weight:600;
-  color:var(--text);
-}
-
-.day-switch{
-  display:flex;
-  gap:8px;
-  margin-bottom:22px;
-  flex-wrap:wrap;
-}
-
+.day-switch{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
 .day-btn{
-  padding:9px 14px;
-  border-radius:12px;
+  padding:8px 14px;border-radius:12px;
   background:rgba(255,255,255,0.05);
-  border:1px solid var(--border);
-  cursor:pointer;
-  font-size:13px;
-  font-weight:500;
-  color:var(--muted);
-  transition:0.25s ease;
+  cursor:pointer;font-size:13px;color:#94a3b8;
+  border:1px solid rgba(255,255,255,0.1);
+  transition:.2s;
 }
-
-.day-btn:hover{
-  background:rgba(255,255,255,0.12);
-  color:#fff;
-  transform:translateY(-1px);
-}
-
 .day-btn.active{
   background:linear-gradient(135deg,#3b82f6,#6366f1);
   color:#fff;
-  box-shadow:0 0 18px rgba(59,130,246,0.5);
 }
 
 .next{
-  background:linear-gradient(135deg,rgba(253,224,71,0.15),rgba(253,224,71,0.05));
-  border:1px solid rgba(253,224,71,0.35);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:22px;
-  box-shadow:0 10px 35px rgba(253,224,71,0.15);
+  margin-bottom:20px;
 }
 
-.next h2{
-  font-size:22px;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.next small{
-  color:var(--yellow);
-  font-weight:600;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  font-size:11px;
-}
-
-.next-info{
+.next-grid{
   display:flex;
-  gap:14px;
+  gap:12px;
   flex-wrap:wrap;
-  font-size:13px;
-  color:var(--muted);
 }
 
-.list{
-  max-height:420px;
-  overflow:auto;
-  scrollbar-width:none;
-}
-.list::-webkit-scrollbar{display:none;}
-
-.item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:16px;
+.now-card,.next-card{
+  flex:1;
+  min-width:140px;
   border-radius:16px;
-  margin-bottom:12px;
-  background:rgba(255,255,255,0.03);
-  border:1px solid var(--border);
-  transition:0.3s ease;
+  padding:14px;
+  backdrop-filter:blur(10px);
 }
 
-.item:hover{
-  transform:translateX(4px);
-  background:rgba(255,255,255,0.08);
+.now-card{
+  background:rgba(59,130,246,0.15);
+  border:1px solid rgba(59,130,246,0.4);
 }
 
-.item.current{
-  background:linear-gradient(135deg,rgba(59,130,246,0.25),rgba(99,102,241,0.15));
-  border-color:rgba(59,130,246,0.5);
-  box-shadow:0 0 25px rgba(59,130,246,0.35);
-}
-
-.item.nextClass{
-  background:linear-gradient(135deg,rgba(253,224,71,0.35),rgba(253,224,71,0.15));
-  border-color:rgba(253,224,71,0.7);
-  box-shadow:0 0 28px rgba(253,224,71,0.4);
+.next-card{
+  background:rgba(253,224,71,0.2);
+  border:1px solid rgba(253,224,71,0.6);
   color:#000;
 }
 
-.class-name{
-  font-size:15px;
-  font-weight:600;
-  margin-bottom:4px;
+.card-label{font-size:11px;font-weight:600;margin-bottom:4px}
+.card-title{font-weight:700;font-size:15px;margin-bottom:4px}
+.card-sub{font-size:12px}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.item{
+  background:rgba(255,255,255,0.04);
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  border:1px solid rgba(255,255,255,0.08);
 }
-
-.teacher-name{
-  font-size:12px;
-  color:var(--muted);
+.item.current{
+  background:rgba(59,130,246,0.3);
 }
-
-.time-range{
-  font-weight:600;
-  font-size:14px;
-  color:var(--muted);
+.item.nextClass{
+  background:rgba(253,224,71,0.8);
+  color:#000;
 }
+.class-name{font-weight:600}
+.teacher-name{font-size:12px;color:#94a3b8}
+.time-range{font-weight:600}
 
-.item.current .time-range{color:#fff;}
-.item.nextClass .time-range{color:#000;}
-
-/* ===== Mobile Premium Layout ===== */
-@media (max-width:600px){
-  body{padding:12px;}
-  .app{
-    width:100%;
-    padding:20px;
-    border-radius:20px;
-  }
-  header{flex-direction:column;gap:6px;}
-  h1{font-size:24px;}
-  .next h2{font-size:18px;}
-  .item{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
-  }
-  .time-range{
-    font-size:13px;
-  }
+@media(max-width:600px){
+  .app{width:100%}
+  .item{flex-direction:column;gap:6px}
 }
 </style>
 </head>
+
 <body>
 <div class="app">
 <header>
-<h2>📅 Timetable</h2>
-<div id="clock"></div>
+<h1>📅 Timetable</h1>
+<div class="clock" id="clock"></div>
 </header>
 
 <div class="day-switch" id="days"></div>
-<div id="nextSection"></div>
+
+<div id="nextSection" class="next"></div>
+
 <div class="list" id="schedule"></div>
 </div>
 
 <script>
-// 8 slots (lunch ignored internally)
+// 8 periods (lunch ignored)
 const periods=[
- "08:50-09:40",
- "09:40-10:30",
- "10:40-11:30",
- "11:30-12:20",
- "13:10-14:00",
- "14:00-14:50",
- "14:50-15:40",
- "15:40-16:30"
+ "08:50-09:40","09:40-10:30","10:40-11:30","11:30-12:20",
+ "13:10-14:00","14:00-14:50","14:50-15:40","15:40-16:30"
 ];
 
+// Full week with correct rooms
 const timetable={
  Monday:[
   {name:"Environment & Sustainability",teacher:"Divyanshi Sharma",room:"RJ-201"},
@@ -335,6 +213,9 @@ function render(){
  list.innerHTML="";
  let now=new Date();
  let current=now.getHours()*60+now.getMinutes();
+ let todayIndex=dayOrder.indexOf(todayReal);
+ let selectedIndex=dayOrder.indexOf(selectedDay);
+ let isToday=(todayIndex===selectedIndex);
 
  let merged=mergeLabs(timetable[selectedDay]||[]);
  let next=null,currentClass=null;
@@ -343,8 +224,12 @@ function render(){
    let [start,end]=cls.time.split("-");
    let s=toMin(start), e=toMin(end);
    let status="";
-   if(current>=s && current<=e){status="current";currentClass=cls;}
-   else if(current<s && !next){status="nextClass";next=cls;}
+   if(isToday){
+     if(current>=s && current<=e){status="current";currentClass=cls;}
+     else if(current<s && !next){status="nextClass";next=cls;}
+   }else{
+     if(!next){next=cls;}
+   }
 
    list.innerHTML+=`
    <div class="item ${status}">
@@ -357,19 +242,29 @@ function render(){
  });
 
  nextSection.innerHTML=`
-  <div class="next">
-    <b>Now:</b> ${currentClass?currentClass.name+" ("+currentClass.time+")":"No class"}<br>
-    👤 ${currentClass?currentClass.teacher:"-"} • 📍 ${currentClass?currentClass.room:"-"}
-    <hr>
-    <b>Next:</b> ${next?next.name+" ("+next.time+")":"None"}<br>
-    👤 ${next?next.teacher:"-"} • 📍 ${next?next.room:"-"}
-  </div>`;
+ <div class="next-grid">
+   <div class="now-card">
+     <div class="card-label">NOW</div>
+     <div class="card-title">${currentClass?currentClass.name:"No class"}</div>
+     <div class="card-sub">${currentClass?currentClass.teacher+" • "+currentClass.room:"-"}</div>
+     <div class="card-sub">${currentClass?currentClass.time:""}</div>
+   </div>
+   <div class="next-card">
+     <div class="card-label">NEXT</div>
+     <div class="card-title">${next?next.name:"No upcoming"}</div>
+     <div class="card-sub">${next?next.teacher+" • "+next.room:"-"}</div>
+     <div class="card-sub">${next?next.time:""}</div>
+   </div>
+ </div>`;
 }
 
 setInterval(()=>{
  document.getElementById("clock").innerText=new Date().toLocaleTimeString();
+ todayReal=new Date().toLocaleString('en-US',{weekday:'long'});
  render();
 },1000);
+
+render();
 </script>
 </body>
 </html>
